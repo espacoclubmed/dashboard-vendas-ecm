@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protótipo Lógica de Dados - Dashboard</title>
+    <!-- Bibliotecas Necessárias -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <style>
+        body { font-family: sans-serif; padding: 20px; background: #f4f4f4; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-bottom: 20px; }
+        .card { background: #fff; padding: 20px; border-radius: 8px; border: 1px solid #ccc; }
+        .controls { display: flex; gap: 10px; margin-bottom: 20px; }
+        select { padding: 8px; }
+        canvas { max-height: 300px; background: #fff; border: 1px solid #ccc; padding: 10px; border-radius: 8px; }
+    </style>
+</head>
+<body>
+
+    <h1>Dashboard Financeiro - Protótipo Lógico</h1>
+
+    <!-- Barra de Metas (Lógica 3) -->
+    <div class="card" style="margin-bottom: 20px;">
+        <h3>Meta vs Faturamento Anual Consolidado</h3>
+        <p><strong>Faturamento Anual (consolidado_anual):</strong> <span id="lblFaturamentoAnual">Carregando...</span></p>
+        <p style="color: dimgray;" id="lblMetaTexto">Calculando distância para a próxima meta...</p>
+    </div>
+
+    <!-- Filtros (Lógica 2) -->
+    <div class="controls">
+        <select id="filtroCampanha" onchange="applyFilters()">
+            <option value="all">Todas as Campanhas</option>
+        </select>
+        
+        <select id="filtroOrigem" onchange="applyFilters()">
+            <option value="all">Todas as Origens</option>
+        </select>
+    </div>
+
+    <!-- Cards de Totais (Lógica 2 & 4) -->
+    <div class="grid">
+        <div class="card">
+            <h4>Total Faturado (Filtrado)</h4>
+            <div id="lblTotalFaturado">...</div>
+        </div>
+        <div class="card">
+            <h4>Total Transfer (Filtrado)</h4>
+            <div id="lblTotalTransfer">...</div>
+        </div>
+    </div>
+
+    <!-- Gráficos -->
+    <div class="grid" style="grid-template-columns: 1fr 1fr;">
+        <div>
+            <h4>Vendas por Village</h4>
+            <canvas id="chartVillage"></canvas>
+        </div>
+        <div>
+            <h4>Vendas por Origem</h4>
+            <canvas id="chartOrigem"></canvas>
+        </div>
+    </div>
+
+    <script>
+        // Formatação (Lógica 5)
+        const formatBRL = (num) => {
+            return new Intl.NumberFormat('pt-BR', { 
+                style: 'currency', 
+                currency: 'BRL' 
+            }).format(num || 0);
+        };
+
+        // Marcos Fixos (Lógica 3)
+        const MARCOS = [
+            { nome: 'Meta 1', valor: 3300000 },
+            { nome: 'Meta 2', valor: 4300000 },
+            { nome: 'Feirão 2025', valor: 4375099.76 },
+            { nome: 'Meta 3', valor: 5000000 },
+            { nome: 'Meta 4', valor: 6000000 }
+        ];
+
+        // Supabase
+        const SB_URL = 'https://kxawcdvsroapmmxnpffk.supabase.co';
+        const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt4YXdjZHZzcm9hcG1teG5wZmZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NzkxMTQsImV4cCI6MjA4OTM1NTExNH0.REuWvVHOhlA2fjbZo7CbRFH16P84Pet238B5OOzeRSM';
+        const sb = supabase.createClient(SB_URL, SB_KEY);
+
+        const state = {
+            vendas: [],
+            faturamentoAnualGlobal: 0,
+            chartValVillage: null,
+            chartValOrigem: null
+        };
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                // Fetch Data (Lógica 1)
+                const [resConsolidado, resVendas] = await Promise.all([
+                    sb.from('consolidado_anual').select('*').limit(1), 
+                    sb.from('vw_dashboard_vendas').select('*')
+                ]);
+
+                if (resConsolidado.error) console.error("Erro Consolidado:", resConsolidado.error);
+                if (resVendas.error) console.error("Erro Vendas:", resVendas.error);
+
+                // Armazena faturamento anual do consolidado
+                if(resConsolidado.data && resConsolidado.data.length > 0) {
+                    const consData = resConsolidado.data[0];
+                    // Assume que a coluna chama total_faturamento_anual
+                    state.faturamentoAnualGlobal = parseFloat(consData.total_faturamento_anual || 0); 
+                }
+
+                state.vendas = resVendas.data || [];
+
+                // Inicializa Lógica de Metas
+                calcMetas();
+                
+                // Preencher Dropdowns com dados distintos
+                populateDropdowns();
+                
+                // Aplica filtros e renderiza o resto
+                applyFilters();
+
+            } catch(e) {
+                console.error("Exceção:", e);
+                alert("Erro ao buscar dados do Supabase. Verifique o console.");
+            }
+        });
+
+        // ==========================================
+        // LÓGICA 3: COMPARAÇÃO DE METAS
+        // ==========================================
+        function calcMetas() {
+            const faturamento = state.faturamentoAnualGlobal;
+            document.getElementById('lblFaturamentoAnual').textContent = formatBRL(faturamento);
+
+            let proximoMarco = null;
+
+            for(let i=0; i < MARCOS.length; i++) {
+                if(faturamento < MARCOS[i].valor) {
+                    proximoMarco = MARCOS[i];
+                    break;
+                }
+            }
+
+            const textoObj = document.getElementById('lblMetaTexto');
+            if (proximoMarco) {
+                const diferenca = proximoMarco.valor - faturamento;
+                textoObj.innerHTML = `Faltam <strong style="color:red;">${formatBRL(diferenca)}</strong> para atingir <strong>${proximoMarco.nome}</strong>.`;
+            } else {
+                textoObj.innerHTML = `<strong style="color:green;">Parabéns! Você alcançou o último marco (${formatBRL(MARCOS[MARCOS.length-1].valor)}).</strong>`;
+            }
+        }
+
+        // ==========================================
+        // LÓGICA 2: FILTROS DROPDOWN
+        // ==========================================
+        function populateDropdowns() {
+            const campanhas = new Set();
+            const origens = new Set();
+            
+            state.vendas.forEach(linha => {
+                // Procurando chaves flexíveis como no original
+                const kCamp = Object.keys(linha).find(k => k.toLowerCase().includes('campanha'));
+                const kOrigem = Object.keys(linha).find(k => k.toLowerCase().includes('origem'));
+                
+                if (kCamp && linha[kCamp]) campanhas.add(String(linha[kCamp]));
+                if (kOrigem && linha[kOrigem]) origens.add(String(linha[kOrigem]));
+            });
+
+            const sCamp = document.getElementById('filtroCampanha');
+            Array.from(campanhas).sort().forEach(c => sCamp.appendChild(new Option(c, c)));
+            
+            const sOrig = document.getElementById('filtroOrigem');
+            Array.from(origens).sort().forEach(o => sOrig.appendChild(new Option(o, o)));
+        }
+
+        function applyFilters() {
+            const valCampanha = document.getElementById('filtroCampanha').value;
+            const valOrigem = document.getElementById('filtroOrigem').value;
+
+            // Filtragem
+            const filtrados = state.vendas.filter(linha => {
+                const kCamp = Object.keys(linha).find(k => k.toLowerCase().includes('campanha'));
+                const kOrig = Object.keys(linha).find(k => k.toLowerCase().includes('origem'));
+
+                const matchCamp = (valCampanha === 'all') || (kCamp && String(linha[kCamp]) === valCampanha);
+                const matchOrig = (valOrigem === 'all')   || (kOrig && String(linha[kOrig]) === valOrigem);
+
+                return matchCamp && matchOrig;
+            });
+
+            // LÓGICA 4 & 2: Recalcular Totais
+            let totalFaturado = 0;
+            let totalTransfer = 0;
+
+            const aggVillage = {};
+            const aggOrigem = {};
+
+            filtrados.forEach(linha => {
+                const keys = Object.keys(linha);
+                
+                // Encontrando colunas dinamicamente
+                const kFaturamento = keys.find(k => k.toLowerCase().includes('faturamento') || k.toLowerCase().includes('total'));
+                const kCategoria = keys.find(k => k.toLowerCase().includes('categoria') || k.toLowerCase().includes('tipo'));
+                const kVillage = keys.find(k => k.toLowerCase().includes('village') || k.toLowerCase().includes('destino'));
+                const kOrigem = keys.find(k => k.toLowerCase().includes('origem'));
+
+                const valor = parseFloat(linha[kFaturamento]) || 0;
+                
+                // Total
+                totalFaturado += valor;
+
+                // Transfer
+                if (kCategoria && String(linha[kCategoria]).toLowerCase() === 'transfer') {
+                    // ou caso a coluna valor seja outra: const kValor = keys.find(k => k.toLowerCase() === 'valor_total') ...
+                    // Conforme instrução: "soma da coluna valor_total da View apenas onde a categoria for igual a 'Transfer'"
+                    const kValorTotal = keys.find(k => k.toLowerCase() === 'valor_total') || kFaturamento;
+                    totalTransfer += parseFloat(linha[kValorTotal]) || 0;
+                }
+
+                // Grupamentos para Gráficos
+                const villageName = (kVillage && linha[kVillage]) ? linha[kVillage] : 'Outros';
+                aggVillage[villageName] = (aggVillage[villageName] || 0) + valor;
+
+                const origemName = (kOrigem && linha[kOrigem]) ? linha[kOrigem] : 'Indefinido';
+                aggOrigem[origemName] = (aggOrigem[origemName] || 0) + valor;
+            });
+
+            // Update UI
+            document.getElementById('lblTotalFaturado').textContent = formatBRL(totalFaturado);
+            document.getElementById('lblTotalTransfer').textContent = formatBRL(totalTransfer);
+
+            // Update Charts
+            renderChart('chartVillage', aggVillage, state.chartValVillage, (instance) => state.chartValVillage = instance);
+            renderChart('chartOrigem', aggOrigem, state.chartValOrigem, (instance) => state.chartValOrigem = instance);
+        }
+
+        // ==========================================
+        // RENDERIZAÇÃO DE GRÁFICOS (Básico)
+        // ==========================================
+        function renderChart(canvasId, aggData, oldInstance, saveInstanceCb) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            
+            const labels = Object.keys(aggData).sort((a,b) => aggData[b] - aggData[a]).slice(0, 10);
+            const data = labels.map(l => aggData[l]);
+
+            if (oldInstance) oldInstance.destroy();
+
+            const newChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Faturamento',
+                        data: data,
+                        backgroundColor: '#8FB3D9', // Azul Glacial simples para o protótipo
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+
+            saveInstanceCb(newChart);
+        }
+    </script>
+</body>
+</html>
