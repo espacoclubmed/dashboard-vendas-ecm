@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Camada_1" data-name="Camada 1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 152.59 111.26">
+  <defs>
+    <style>
+      .cls-1 {
+        font-family: Inter-Light, Inter;
+        font-variation-settings: 'wght' 300, 'slnt' 0;
+        font-weight: 300;
+      }
+
+      .cls-1, .cls-2 {
+        fill: #112250;
+        font-size: 27.66px;
+      }
+
+      .cls-2 {
+        font-family: Inter-Bold, Inter;
+        font-variation-settings: 'wght' 700, 'slnt' 0;
+        font-weight: 700;
+      }
+
+      .cls-3 {
+        fill: #d9cbc2;
+        filter: url(#drop-shadow-5);
+      }
+    </style>
+    <filter id="drop-shadow-5" x="0" y="0" width="152.59" height="111.26" filterUnits="userSpaceOnUse">
+      <feOffset dx="5" dy="5"/>
+      <feGaussianBlur result="blur" stdDeviation="7"/>
+      <feFlood flood-color="#bfbfbf" flood-opacity=".75"/>
+      <feComposite in2="blur" operator="in"/>
+      <feComposite in="SourceGraphic"/>
+    </filter>
+  </defs>
+  <path class="cls-3" d="M34.05,95.66h28.69c1.32,0,2.54.69,3.22,1.81l7.39,12.13c1.35,2.21,4.56,2.21,5.9,0l7.39-12.13c.68-1.12,1.9-1.81,3.22-1.81h28.69c18.81,0,34.05-15.24,34.05-34.05v-27.56c0-18.8-15.24-34.05-34.05-34.05H34.05C15.24,0,0,15.24,0,34.05v27.56C0,80.41,15.24,95.66,34.05,95.66Z"/>
+  <text class="cls-2" transform="translate(24.75 47.65)"><tspan x="0" y="0">META 1</tspan></text>
+  <text class="cls-1" transform="translate(44.15 78.34)"><tspan x="0" y="0">3,3m</tspan></text>
+</svg>
