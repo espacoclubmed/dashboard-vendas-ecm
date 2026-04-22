@@ -3,334 +3,352 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard ECM · Ultra-Clean Glass</title>
-    <meta name="description" content="Dashboard de vendas Espaço Club Med. Estética Glassmorphism.">
-    <!-- Inter — equivalente ao SF Pro na web -->
+    <title>Espaço Club Med · Performance de Vendas</title>
+    <meta name="description" content="Dashboard estratégico de vendas — Espaço Club Med Brasil.">
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              background: "#faf9fa",
+              surface: "#faf9fa",
+              "surface-container-lowest": "#ffffff",
+              "surface-container-low": "#f4f3f4",
+              "surface-container": "#efedef",
+              "surface-container-high": "#e9e8e9",
+              "surface-container-highest": "#e3e2e3",
+              "surface-variant": "#e3e2e3",
+              "on-surface": "#1a1c1d",
+              "on-surface-variant": "#42474c",
+              "on-background": "#1a1c1d",
+              outline: "#73787c",
+              "outline-variant": "#c2c7cc",
+              primary: "#476273",
+              "on-primary": "#ffffff",
+              "primary-container": "#b2cee2",
+              "on-primary-container": "#3d5869",
+              secondary: "#13333d",
+              "on-secondary": "#ffffff",
+              "secondary-container": "#c7e8f5",
+              "on-secondary-container": "#4b6974",
+              tertiary: "#5d6301",
+              "on-tertiary": "#ffffff",
+              "tertiary-container": "#d1d871",
+              "on-tertiary-container": "#545900",
+              error: "#ba1a1a",
+              "on-error": "#ffffff",
+              "error-container": "#ffdad6",
+              "on-error-container": "#93000a"
+            },
+            borderRadius: { DEFAULT: "1rem", md: "1.5rem", lg: "2rem", xl: "3rem", full: "9999px" },
+            spacing: {
+              "unit-xs": "0.25rem", "unit-sm": "0.5rem", "unit-md": "1rem",
+              "unit-lg": "2rem", "unit-xl": "4rem",
+              gutter: "1.5rem", "margin-page": "2rem", "container-max": "1280px"
+            },
+            fontFamily: { sans: ["Inter", "system-ui", "sans-serif"] }
+          }
+        }
+      };
+    </script>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
-<body>
 
+<body class="bg-background text-on-background font-sans min-h-screen antialiased">
+
+    <!-- Loader -->
     <div class="loader-overlay" id="globalLoader">
         <div class="spinner"></div>
-        <div style="font-size: 14px; color: #45524A; font-weight: 500; letter-spacing: -0.1px;">Iniciando Dashboard...</div>
+        <div class="text-sm text-secondary mt-4 font-medium">Carregando métricas…</div>
     </div>
 
-    <!-- BARRA 1: Logo apenas -->
-    <div class="topbar-logo">
-        <img src="Logos Espaço Club Med_Logo ECM Azul.svg" alt="Espaço Club Med" class="header-logo-img" onerror="this.style.display='none'">
-    </div>
-
-    <!-- BARRA 2: Título + Filtros + Status + Botão (sticky) -->
-    <header class="luxury-header">
-        <div class="header-top-row">
-            <!-- Título da plataforma -->
-            <div class="header-brand-text">
-                <div class="logo-title">Vendas Espaço Club Med</div>
-                <div class="logo-subtitle">Dashboard de métricas</div>
+    <!-- Header (apenas logo) -->
+    <header class="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-outline-variant/40">
+        <div class="flex justify-center sm:justify-between items-center gap-4 px-margin-page py-3 max-w-container-max mx-auto flex-wrap">
+            <div class="flex items-center gap-3">
+                <img src="Logos Espaço Club Med_Logo ECM Azul.svg" alt="Espaço Club Med" class="h-10 w-auto" onerror="this.style.display='none'">
             </div>
-            <!-- Filtros como pills -->
-            <div class="header-filters-row">
-                <select class="filter-select" id="filtroCampanha" onchange="applyFilters()">
-                    <option value="all">Todas as campanhas</option>
-                </select>
-                <select class="filter-select" id="filtroOrigem" onchange="applyFilters()">
-                    <option value="all">Todas as origens</option>
-                </select>
-                <select class="filter-select" id="filtroMes" onchange="applyFilters()">
-                    <option value="all">Todos os meses</option>
-                </select>
-            </div>
-            <!-- Ações: status ao vivo + botão tablet -->
-            <div class="header-actions">
-                <div id="lastUpdate" class="live-badge">
-                    <span class="live-dot"></span>
+            <div class="flex items-center gap-2 flex-wrap">
+                <div id="lastUpdate" class="hidden sm:flex items-center gap-2 text-xs text-on-surface-variant bg-surface-container-low rounded-full px-3 py-2">
+                    <span class="w-2 h-2 rounded-full bg-green-500"></span>
                     <span id="updateTime">—</span>
                 </div>
-                <button class="btn-tablet" onclick="startSlideshow()">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
-                    Tablet
+                <select class="filter-select" id="filtroCampanha" onchange="applyFilters()">
+                    <option value="all">Campanha: Todas</option>
+                </select>
+                <select class="filter-select" id="filtroOrigem" onchange="applyFilters()">
+                    <option value="all">Origem: Todas</option>
+                </select>
+                <select class="filter-select" id="filtroMes" onchange="applyFilters()">
+                    <option value="all">Mês: Todos</option>
+                </select>
+                <select class="filter-select" id="filtroVillage" onchange="applyFilters()">
+                    <option value="all">Village: Todos</option>
+                </select>
+                <button class="btn-tablet" onclick="startSlideshow()" title="Visualização Tablet">
+                    <span class="material-symbols-outlined text-[18px]">tablet</span>
+                    <span class="hidden lg:inline">Tablet</span>
                 </button>
             </div>
         </div>
     </header>
 
-    <main class="dashboard-container">
+    <main class="pt-28 pb-32 px-margin-page max-w-container-max mx-auto">
 
-        <!-- ══ Minimalist Glass Progress Bar ══ -->
-        <div class="gamification-panel glass-panel">
-            <div class="gami-header">
-                <div class="gami-title">Progresso de Metas Globais</div>
-                <div class="gami-subtitle">Faturamento do Feirão 2026 vs Objetivos</div>
-            </div>
-            <div class="timeline-wrapper">
-                <div class="milestone-points" id="milestonesContainer"></div>
-                <div class="progress-track" id="progressTrack">
-                    <div class="progress-fill" id="progressFill" style="width: 0%;" data-current="R$ 0,00"></div>
-                </div>
-            </div>
-            <div class="gami-remaining-text" id="gamiRemainingText">Calculando...</div>
-        </div>
+        <!-- 1 · Hero + Progresso Global -->
+        <section class="mb-unit-xl">
+            <div class="hero-card">
+                <div class="hero-card-bg"></div>
+                <div class="relative z-20 w-full">
+                    <h2 class="hero-title">Performance de Vendas</h2>
+                    <p class="hero-subtitle">Acompanhamento estratégico em tempo real · Club Med Brasil</p>
 
-        <!-- Eyebrow -->
-        <div class="section-eyebrow">Indicadores de Desempenho</div>
-
-        <!-- ══ KPI Cards — Grid 4+4 ══ -->
-        <div class="kpi-grid">
-            <!-- Row 1 — os 2 primeiros são hero escuros -->
-            <div class="kpi-card glass-panel theme-hero">
-                <span class="kpi-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                </span>
-                <div class="kpi-label">Total Faturado Anual</div>
-                <div class="kpi-value" id="kpi-faturamento">...</div>
-            </div>
-            <div class="kpi-card glass-panel theme-hero">
-                <span class="kpi-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 22 20 2 20"/><line x1="12" y1="9" x2="12" y2="14"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                </span>
-                <div class="kpi-label">Faturamento Feirão 2026</div>
-                <div class="kpi-value" id="kpi-feirao2026">...</div>
-            </div>
-            <div class="kpi-card glass-panel theme-comissao">
-                <span class="kpi-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
-                </span>
-                <div class="kpi-label">Comissão Green</div>
-                <div class="kpi-value" id="kpi-comissao">...</div>
-            </div>
-            <div class="kpi-card glass-panel theme-faturamento">
-                <span class="kpi-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 6v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
-                </span>
-                <div class="kpi-label">Total Transfer</div>
-                <div class="kpi-value" id="kpi-transfer">...</div>
-            </div>
-
-            <!-- Row 2 -->
-            <div class="kpi-card glass-panel theme-faturamento">
-                <span class="kpi-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
-                </span>
-                <div class="kpi-label">Total Equipamento</div>
-                <div class="kpi-value" id="kpi-equipamento">...</div>
-            </div>
-            <div class="kpi-card glass-panel theme-faturamento">
-                <span class="kpi-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-                </span>
-                <div class="kpi-label">Taxa Inscrição</div>
-                <div class="kpi-value" id="kpi-taxas">...</div>
-            </div>
-            <div class="kpi-card glass-panel theme-coral">
-                <span class="kpi-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-                </span>
-                <div class="kpi-label">Cancelamentos</div>
-                <div class="kpi-value" id="kpi-cancelamentos">...</div>
-            </div>
-            <div class="kpi-card glass-panel theme-metas">
-                <span class="kpi-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
-                </span>
-                <div class="kpi-label">Falta para Incomparável</div>
-                <div class="kpi-value" id="kpi-gap">...</div>
-            </div>
-        </div>
-
-        <!-- ══ Charts ══ -->
-        <div class="section-eyebrow">Análise de Vendas</div>
-
-        <!-- Village — card full width, altura dinâmica -->
-        <div class="chart-grid-full">
-            <div class="chart-card glass-panel">
-                <div class="chart-header">
-                    <div class="chart-title">Vendas por Village</div>
-                    <div class="chart-badge-group">
-                        <select class="filter-select" id="filtroVillageView" onchange="changeVillageView(this.value)" style="min-width: 130px; padding: 4px 8px; font-size: 11px;">
-                            <option value="both">Ambos (Valor e Qtd)</option>
-                            <option value="valor">Apenas Valor Total</option>
-                            <option value="qtd">Apenas Qtd. Vendas</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="chart-container chart-container--village">
-                    <canvas id="chartVillages"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <!-- Eyebrow -->
-        <div class="section-eyebrow">Origem &amp; Vendedores</div>
-
-        <!-- Origem + Campanhas lado a lado -->
-        <div class="chart-grid">
-            <div class="chart-card glass-panel origem-card-clickable" onclick="openOrigemModal()" title="Clique para ver detalhes e ROI">
-                <div class="chart-header">
-                    <div class="chart-title">Distribuição por Origem</div>
-                    <div style="display:flex;align-items:center;gap:8px;">
-                        <div class="chart-badge">Faturamento</div>
-                        <div class="origem-expand-hint">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
-                            Ver ROI
+                    <div class="progress-block">
+                        <div class="progress-track-hero">
+                            <div class="progress-fill-hero" id="progressFill"></div>
+                            <div class="milestone-points" id="milestonesContainer"></div>
+                        </div>
+                        <div class="flex justify-between items-baseline mt-3 text-sm flex-wrap gap-2">
+                            <span class="opacity-85 font-medium">Progresso Global · Metas 2026</span>
+                            <span id="gamiRemaining" class="font-semibold text-tertiary-container">Calculando…</span>
                         </div>
                     </div>
                 </div>
-                <div id="origemListWrap" class="origem-list-wrap">
-                    <div id="origemList" class="origem-list">
-                        <div class="origem-loading">Carregando...</div>
+            </div>
+        </section>
+
+        <!-- 2·3·4 · Receita Anual / Feirão de Neve / Hot Sales -->
+        <section class="grid grid-cols-1 md:grid-cols-3 gap-gutter mb-unit-xl">
+            <div class="card-soft p-unit-lg flex flex-col justify-between min-w-0">
+                <div>
+                    <span class="material-symbols-outlined text-secondary text-3xl mb-4">account_balance_wallet</span>
+                    <p class="text-on-surface-variant text-sm font-medium">Receita Anual Acumulada</p>
+                </div>
+                <h3 class="kpi-hero text-secondary" id="kpi-faturamento">…</h3>
+                <div class="flex items-center gap-2 text-tertiary mt-2">
+                    <span class="material-symbols-outlined text-[18px]">trending_up</span>
+                    <span class="text-xs font-semibold">Consolidado anual</span>
+                </div>
+            </div>
+
+            <div class="rounded-xl bg-secondary text-white p-unit-lg flex flex-col justify-between shadow-lg min-w-0">
+                <div>
+                    <span class="material-symbols-outlined text-tertiary-container text-3xl mb-4">ac_unit</span>
+                    <p class="opacity-80 text-sm font-medium">Receita Feirão de Neve</p>
+                </div>
+                <h3 class="kpi-hero text-tertiary-container" id="kpi-feiraoneve">…</h3>
+                <div class="bg-white/10 p-2 rounded-full mt-4 flex items-center justify-between px-4">
+                    <span class="text-sm">Temporada Neve</span>
+                    <span class="material-symbols-outlined text-tertiary-container">verified</span>
+                </div>
+            </div>
+
+            <div class="rounded-xl bg-primary-container text-on-primary-container p-unit-lg flex flex-col justify-between min-w-0">
+                <div>
+                    <span class="material-symbols-outlined text-secondary text-3xl mb-4">local_fire_department</span>
+                    <p class="text-sm font-medium">Receita Hot Sales</p>
+                </div>
+                <h3 class="kpi-hero text-secondary" id="kpi-hotsales">…</h3>
+                <div class="flex items-center gap-2 mt-4">
+                    <span class="material-symbols-outlined text-[18px]">bolt</span>
+                    <span class="text-xs font-semibold">Villages de sol</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5 · Métricas Secundárias + Cards de Atenção -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-gutter mb-unit-xl">
+            <div class="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-gutter">
+                <div class="metric-tile">
+                    <div class="metric-icon bg-tertiary-container/40 text-tertiary"><span class="material-symbols-outlined">payments</span></div>
+                    <div class="min-w-0 flex-1">
+                        <p class="text-on-surface-variant text-xs font-semibold uppercase tracking-wider">Comissão</p>
+                        <p class="kpi-tile text-secondary" id="kpi-comissao">…</p>
+                    </div>
+                </div>
+                <div class="metric-tile">
+                    <div class="metric-icon bg-primary-container/50 text-primary"><span class="material-symbols-outlined">downhill_skiing</span></div>
+                    <div class="min-w-0 flex-1">
+                        <p class="text-on-surface-variant text-xs font-semibold uppercase tracking-wider">Equipamentos</p>
+                        <p class="kpi-tile text-secondary" id="kpi-equipamentos">…</p>
+                    </div>
+                </div>
+                <div class="metric-tile">
+                    <div class="metric-icon bg-primary-container/50 text-primary"><span class="material-symbols-outlined">swap_horiz</span></div>
+                    <div class="min-w-0 flex-1">
+                        <p class="text-on-surface-variant text-xs font-semibold uppercase tracking-wider">Total Transfer</p>
+                        <p class="kpi-tile text-secondary" id="kpi-transfer">…</p>
+                    </div>
+                </div>
+                <div class="metric-tile">
+                    <div class="metric-icon bg-primary-container/50 text-primary"><span class="material-symbols-outlined">receipt_long</span></div>
+                    <div class="min-w-0 flex-1">
+                        <p class="text-on-surface-variant text-xs font-semibold uppercase tracking-wider">Taxa de Inscrição</p>
+                        <p class="kpi-tile text-secondary" id="kpi-taxas">…</p>
                     </div>
                 </div>
             </div>
-            <div class="chart-card glass-panel">
-                <div class="chart-header">
-                    <div class="chart-title">Vendas por Vendedor</div>
-                    <div class="chart-badge">Qtd e Valor</div>
+
+            <div class="flex flex-col gap-gutter">
+                <div class="bg-white border-l-4 border-error rounded-xl p-unit-lg shadow-sm">
+                    <div class="flex justify-between items-start mb-2">
+                        <p class="text-error text-xs font-semibold uppercase tracking-wider">Cancelamentos</p>
+                        <span class="material-symbols-outlined text-error">cancel</span>
+                    </div>
+                    <p class="kpi-tile text-on-surface" id="kpi-cancelamentos">R$ 0</p>
+                    <p class="text-xs text-on-surface-variant mt-1">Valor cancelado no período</p>
                 </div>
-                <div class="chart-container">
-                    <canvas id="chartVendedores"></canvas>
+                <div class="bg-white border-l-4 border-tertiary-container rounded-xl p-unit-lg shadow-sm">
+                    <div class="flex justify-between items-start mb-2">
+                        <p class="text-tertiary text-xs font-semibold uppercase tracking-wider" id="kpi-gap-label">Gap de Meta</p>
+                        <span class="material-symbols-outlined text-tertiary">flag</span>
+                    </div>
+                    <p class="kpi-tile text-on-surface" id="kpi-gap">…</p>
+                    <p class="text-xs text-on-surface-variant mt-1" id="kpi-gap-sub">Restante para a próxima meta</p>
                 </div>
             </div>
         </div>
 
-        <!-- Eyebrow -->
-        <div class="section-eyebrow">Calendário de Viagens</div>
+        <!-- 6 · Vendas por Village (clicável → modal completo) -->
+        <section class="bg-white rounded-xl border border-outline-variant/40 p-unit-lg mb-unit-xl card-clickable"
+                 onclick="openVillageModal()" title="Clique para ver o panorama completo">
+            <div class="flex justify-between items-center mb-unit-lg">
+                <div>
+                    <h3 class="text-2xl font-semibold text-secondary">Vendas por Village</h3>
+                    <p class="text-xs text-on-surface-variant">Análise de performance · clique para panorama completo</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="chart-badge-pill badge-glacial">Valor Total</span>
+                    <span class="chart-badge-pill badge-gold">Qtd. Vendas</span>
+                </div>
+            </div>
+            <div class="chart-container-village">
+                <canvas id="chartVillages"></canvas>
+            </div>
+        </section>
 
-        <!-- Dates — card full width -->
-        <div class="chart-grid-full">
-            <div class="chart-card glass-panel">
-                <div class="chart-header">
-                    <div class="chart-title">Datas Mais Concorridas de Viagem</div>
-                    <div style="display: flex; gap: 12px; align-items: center;">
-                        <select class="filter-select" id="filtroDatasVillage" onchange="renderDatasViagemChart()" style="min-width: 140px; padding: 6px 12px; font-size: 12px;">
-                            <option value="all">Todos os Villages</option>
-                        </select>
-                        <div class="chart-badge">Insights de Viagem</div>
+        <!-- 7 · Distribuição de Canais (clicável → modal ROI) + Top Sellers -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-gutter mb-unit-xl">
+            <div class="bg-white rounded-xl border border-outline-variant/40 p-unit-lg card-clickable"
+                 onclick="openChannelsModal()" title="Clique para análise detalhada">
+                <div class="flex justify-between items-center mb-unit-md">
+                    <div>
+                        <h3 class="text-2xl font-semibold text-secondary">Distribuição de Canais</h3>
+                        <p class="text-xs text-on-surface-variant">Clique para análise detalhada (ROI)</p>
                     </div>
+                    <span class="material-symbols-outlined text-outline">open_in_full</span>
                 </div>
-                <!-- Insight text box -->
-                <div id="datasViagemInsight" style="margin-bottom: 20px; background: rgba(151,180,194,0.07); padding: 12px 18px; border-radius: 14px; font-size: 13px; color: var(--taupe); border: 1px solid rgba(151,180,194,0.18); border-left: 3px solid var(--azul-aco); line-height: 1.55;">
-                    Calculando insights...
+                <div class="h-[280px]">
+                    <canvas id="chartOrigem"></canvas>
                 </div>
-                <div class="chart-container chart-container--dates">
-                    <canvas id="chartDatas"></canvas>
+            </div>
+
+            <div class="bg-surface-container-low rounded-xl p-unit-lg">
+                <div class="flex justify-between items-center mb-unit-md">
+                    <h3 class="text-2xl font-semibold text-secondary">Top Sellers</h3>
+                    <span class="material-symbols-outlined text-outline">workspace_premium</span>
+                </div>
+                <div id="topSellers" class="flex flex-col gap-unit-sm">
+                    <p class="text-xs text-on-surface-variant">Carregando vendedores…</p>
                 </div>
             </div>
         </div>
 
     </main>
 
-    <!-- ══ TABLET SLIDESHOW OVERLAY (Fullscreen) ══ -->
-    <div id="tablet-slideshow" onclick="stopSlideshow()">
-        <div class="ts-panel" onclick="event.stopPropagation()">
-            <!-- Header -->
-            <div class="ts-header">
-                <div class="ts-header-left">
-                    <img src="Logos Espa&#xE7;o Club Med_Logo ECM Branco.svg" alt="ECM" class="ts-logo" onerror="this.style.display='none'">
-                    <div>
-                        <div class="ts-title">Vendas Espa&#xE7;o Club Med</div>
-                        <div class="ts-subtitle">Dashboard de m&#xE9;tricas</div>
-                    </div>
-                </div>
-                <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:rgba(151,180,194,0.75);background:rgba(255,255,255,0.06);border:1px solid rgba(151,180,194,0.15);padding:5px 12px;border-radius:100px;white-space:nowrap;">
-                    <span style="width:6px;height:6px;border-radius:50%;background:#4CAF50;display:inline-block;flex-shrink:0;"></span>
-                    <span id="ts-updateTime">—</span>
-                </div>
-                <button class="ts-close" onclick="stopSlideshow()" title="Fechar (Esc)">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                </button>
-            </div>
-            <!-- Timer bar -->
-            <div class="ts-timer-track"><div id="ts-timer-bar"></div></div>
-            <!-- Content -->
-            <div id="ts-content" class="ts-content"></div>
-            <!-- Footer nav -->
-            <div class="ts-footer">
-                <button class="ts-nav-btn" onclick="(function(){clearInterval(slideshow.timer);showSlide(slideshow.currentSlide-1);if(!slideshow.paused)startAutoAdvance();})()" >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
-                </button>
-                <div style="display:flex;align-items:center;gap:12px;">
-                    <div id="ts-dots" class="ts-dots"></div>
-                    <button id="ts-pause-btn" class="ts-nav-btn ts-pause-btn" onclick="togglePause()" title="Pausar (Espaço)">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="6" y1="4" x2="6" y2="20"/><line x1="18" y1="4" x2="18" y2="20"/></svg>
-                    </button>
-                </div>
-                <button class="ts-nav-btn" onclick="(function(){clearInterval(slideshow.timer);showSlide(slideshow.currentSlide+1);if(!slideshow.paused)startAutoAdvance();})()" >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ══ MODAL: ORIGEM DETALHADO + ROI ══ -->
-    <div id="origemModal" class="ori-modal-overlay" onclick="closeOrigemModal()">
-        <div class="ori-modal-panel glass-panel" onclick="event.stopPropagation()">
-
-            <!-- Header -->
-            <div class="ori-modal-header">
+    <!-- Modal: Village detalhe -->
+    <div class="modal-overlay" id="villageModal" onclick="closeModal('villageModal')">
+        <div class="modal-panel" onclick="event.stopPropagation()">
+            <div class="modal-header">
                 <div>
-                    <div class="ori-modal-title">Distribuição por Origem</div>
-                    <div class="ori-modal-subtitle">Faturamento, ROI e eficiência de Mídia Paga</div>
+                    <h3 class="text-2xl font-semibold text-secondary">Panorama · Vendas por Village</h3>
+                    <p class="text-xs text-on-surface-variant">Ranking completo · valor total e quantidade de vendas</p>
                 </div>
-                <div style="display:flex;align-items:center;gap:10px;">
-                    <!-- Filtro de Ano -->
-                    <select class="ori-ano-select" id="oriAnoFilter" onchange="renderRoiSection()">
-                        <option value="all">Todos os anos</option>
-                        <option value="2024">2024</option>
-                        <option value="2025">2025</option>
-                        <option value="2026">2026</option>
-                    </select>
-                    <button class="ori-modal-close" onclick="closeOrigemModal()">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                    </button>
-                </div>
+                <button class="modal-close" onclick="closeModal('villageModal')" title="Fechar">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
             </div>
-
-            <!-- ROI Hero Section -->
-            <div class="ori-roi-section" id="oriRoiSection">
-                <div class="ori-roi-loading">Carregando dados de mídia...</div>
-            </div>
-
-            <!-- Gráfico de Tendência -->
-            <div class="ori-trend-section" id="oriTrendSection" style="display:none;">
-                <div class="ori-divider"></div>
-                <div class="ori-campanhas-title" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-                    <span>Tendência Mensal</span>
-                    <div class="ori-trend-toggle">
-                        <button class="ori-trend-btn active" id="ori-btn-roas" onclick="setOriTrendMetric('roas')">ROAS</button>
-                        <button class="ori-trend-btn" id="ori-btn-lucro" onclick="setOriTrendMetric('lucro')">Lucro Bruto</button>
-                    </div>
-                </div>
-                <div style="position:relative;height:240px;margin-bottom:20px;">
-                    <canvas id="oriTrendChart"></canvas>
-                </div>
-            </div>
-
-            <!-- Divider -->
-            <div class="ori-divider"></div>
-
-            <!-- Origem full list -->
-            <div class="ori-modal-section-title">Faturamento por Origem</div>
-            <div id="origemModalList" class="origem-list origem-list--modal">
-                <div class="origem-loading">Carregando...</div>
-            </div>
-
+            <div class="modal-body" id="villageModalBody"></div>
         </div>
     </div>
 
-    <!-- ══ FOOTER ══ -->
-    <footer class="dashboard-footer">
-        <div class="footer-inner">
-            <span class="footer-brand">Espaço Club Med by Greentours 2026</span>
-            <span class="footer-sep">·</span>
-            <span class="footer-rights">Todos os Direitos Reservados</span>
-            <span class="footer-sep">·</span>
-            <span class="footer-dev">Desenvolvido por <strong>Gabriel Morais</strong></span>
+    <!-- Modal: Canais detalhe (ROI) -->
+    <div class="modal-overlay" id="channelsModal" onclick="closeModal('channelsModal')">
+        <div class="modal-panel" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <div>
+                    <h3 class="text-2xl font-semibold text-secondary">Análise Detalhada · Canais</h3>
+                    <p class="text-xs text-on-surface-variant">ROI por origem · faturamento, volume e share</p>
+                </div>
+                <button class="modal-close" onclick="closeModal('channelsModal')" title="Fechar">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div class="modal-body" id="channelsModalBody"></div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="border-t border-outline-variant/40 bg-white/60 backdrop-blur-sm py-6 px-margin-page">
+        <div class="max-w-container-max mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-on-surface-variant">
+            <span>© 2026 Espaço Club Med · Greentours LTDA. Todos os direitos reservados.</span>
+            <a href="https://greentours.com.br" target="_blank" rel="noopener"
+               class="font-semibold text-secondary hover:text-primary transition-colors underline underline-offset-2">
+                greentours.com.br
+            </a>
         </div>
     </footer>
 
+    <!-- Tablet Slideshow Overlay -->
+    <div id="tablet-slideshow" onclick="stopSlideshow()">
+        <div class="ts-panel" onclick="event.stopPropagation()">
+            <div class="ts-header">
+                <div class="ts-header-left">
+                    <img src="Logos Espaço Club Med_Logo ECM Azul.svg" alt="ECM" class="ts-logo" onerror="this.style.display='none'">
+                    <div>
+                        <div class="ts-title">Espaço Club Med</div>
+                        <div class="ts-subtitle">Performance de Vendas</div>
+                    </div>
+                </div>
+                <div class="ts-status">
+                    <span class="ts-status-dot"></span>
+                    <span id="ts-updateTime">—</span>
+                </div>
+                <button class="ts-close" onclick="stopSlideshow()" title="Fechar (Esc)">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div class="ts-timer-track"><div id="ts-timer-bar"></div></div>
+            <div id="ts-content" class="ts-content"></div>
+            <div class="ts-footer">
+                <button class="ts-nav-btn" onclick="(function(){clearInterval(slideshow.timer);showSlide(slideshow.currentSlide-1);if(!slideshow.paused)startAutoAdvance();})()">
+                    <span class="material-symbols-outlined">chevron_left</span>
+                </button>
+                <div class="flex items-center gap-3">
+                    <div id="ts-dots" class="ts-dots"></div>
+                    <button id="ts-pause-btn" class="ts-nav-btn" onclick="togglePause()" title="Pausar (Espaço)">
+                        <span class="material-symbols-outlined">pause</span>
+                    </button>
+                </div>
+                <button class="ts-nav-btn" onclick="(function(){clearInterval(slideshow.timer);showSlide(slideshow.currentSlide+1);if(!slideshow.paused)startAutoAdvance();})()">
+                    <span class="material-symbols-outlined">chevron_right</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+    </script>
     <script src="script.js"></script>
 </body>
 </html>
