@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "background": "#faf9fa",
+                    "inverse-surface": "#2f3032",
+                    "surface-variant": "#e3e2e3",
+                    "tertiary": "#5d6301",
+                    "tertiary-container": "#cad16b",
+                    "inverse-on-surface": "#f1f0f2",
+                    "primary": "#476273",
+                    "on-surface": "#1a1c1d",
+                    "surface-container-highest": "#e3e2e3",
+                    "on-secondary": "#ffffff",
+                    "primary-container": "#b2cee2",
+                    "tertiary-fixed": "#e2e980",
+                    "primary-fixed": "#cae6fb",
+                    "on-secondary-fixed": "#001f28",
+                    "on-primary": "#ffffff",
+                    "surface": "#faf9fa",
+                    "surface-container": "#efedef",
+                    "surface-tint": "#476273",
+                    "primary-fixed-dim": "#aecade",
+                    "on-tertiary-container": "#545900",
+                    "surface-container-high": "#e9e8e9",
+                    "on-primary-fixed-variant": "#2f4a5a",
+                    "on-secondary-container": "#4b6974",
+                    "surface-dim": "#dadadb",
+                    "on-error": "#ffffff",
+                    "on-secondary-fixed-variant": "#2d4b55",
+                    "on-tertiary": "#ffffff",
+                    "on-tertiary-fixed": "#1b1d00",
+                    "error": "#ba1a1a",
+                    "secondary-fixed-dim": "#acccd8",
+                    "on-surface-variant": "#42474c",
+                    "outline": "#73787c",
+                    "surface-container-low": "#f4f3f4",
+                    "outline-variant": "#c2c7cc",
+                    "surface-container-lowest": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "on-primary-fixed": "#001e2d",
+                    "tertiary-fixed-dim": "#c6cd67",
+                    "on-primary-container": "#3d5869",
+                    "secondary-container": "#c7e8f5",
+                    "inverse-primary": "#aecade",
+                    "secondary": "#45636e",
+                    "secondary-fixed": "#c7e8f5",
+                    "surface-bright": "#faf9fa",
+                    "on-error-container": "#93000a",
+                    "on-tertiary-fixed-variant": "#464a00",
+                    "on-background": "#1a1c1d"
+            },
+            "borderRadius": {
+                    "DEFAULT": "1rem",
+                    "lg": "2rem",
+                    "xl": "3rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "unit-xl": "4rem",
+                    "unit-lg": "2rem",
+                    "container-max": "1280px",
+                    "gutter": "1.5rem",
+                    "unit-md": "1rem",
+                    "unit-xs": "0.25rem",
+                    "margin-page": "2rem",
+                    "unit-sm": "0.5rem"
+            },
+            "fontFamily": {
+                    "label-sm": ["Inter"],
+                    "h2": ["Inter"],
+                    "body-md": ["Inter"],
+                    "h3": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "h1": ["Inter"],
+                    "label-md": ["Inter"]
+            },
+            "fontSize": {
+                    "label-sm": ["12px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                    "h2": ["36px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "h3": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                    "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "h1": ["48px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "label-md": ["14px", {"lineHeight": "1.4", "letterSpacing": "0.01em", "fontWeight": "500"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .tonal-layer-shift {
+            background-color: rgba(239, 237, 239, 0.5);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-md min-h-screen">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 shadow-sm dark:shadow-none">
+<div class="flex justify-between items-center px-6 py-4 max-w-7xl mx-auto">
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-slate-500 hover:bg-slate-50 p-2 rounded-full transition-colors active:scale-95 duration-200">menu</button>
+<h1 class="text-xl font-bold text-slate-900 dark:text-white font-['Inter'] tracking-tight">Espaço Club Med</h1>
+</div>
+<div class="flex items-center gap-6">
+<nav class="hidden md:flex gap-8">
+<a class="text-slate-900 dark:text-white font-semibold font-['Inter']" href="#">Dashboard</a>
+<a class="text-slate-500 dark:text-slate-400 font-medium font-['Inter'] hover:text-slate-900 transition-colors" href="#">Sales</a>
+<a class="text-slate-500 dark:text-slate-400 font-medium font-['Inter'] hover:text-slate-900 transition-colors" href="#">Reports</a>
+</nav>
+<img alt="User" class="w-10 h-10 rounded-full border-2 border-primary-container" data-alt="close-up portrait of a professional executive with a friendly expression in a modern office setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAH7fBs9H1xTrr7CEONGETpZP57-5O2INkLKe6JxTgk8KWHiDBGr9GJUUTRxQZEiH2ZwrCLnsB824rugmsW2v-2V6mCXp-n1b6mNvjqqlM816VhAcCbjUq1aYwYsq_Wuomb0GB3SPdjb1d2-TcIk0cCjNY1ndBwgrW_BISq64hybAdg68YKywjghV_gEsYDdR-u9XZcBk43BST1nIKialo_Ots-364mLFBdg7Nn1u69z89AnNjjt9-0-zfeWxWX6Z1ZQkS4cV1oYzIU"/>
+</div>
+</div>
+</header>
+<main class="pt-24 pb-32 px-margin-page max-w-container-max mx-auto">
+<!-- Hero Section & Progress -->
+<section class="mb-unit-xl">
+<div class="relative overflow-hidden rounded-xl bg-secondary min-h-[300px] flex flex-col justify-end p-unit-lg text-white mb-unit-lg">
+<div class="absolute inset-0 bg-gradient-to-t from-secondary via-secondary/40 to-transparent z-10"></div>
+<img class="absolute inset-0 w-full h-full object-cover" data-alt="luxury beach resort with infinity pool overlooking turquoise ocean at sunset with palm trees and cabanas" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBv3kZSXqRJSsaAkR4aSG4V4WzvQ9I-xwlUV91MMs69koTXhNnxzPgNoTuvpNbRuuohzAzfJ9F6Os0dEZIb8QsVsAcMFy-hL8KhXeb15GYZITtFPwJhRHae-UDZbIPZBai-CnAwCXWKqvp4wYqkWuPo5d8tNWci3QPih0wvPYa3xuKD9aBnkpaiN5BB-gfrv8-VTywzOtlUGMyvHvkYgJOFosQaJ_H0_ovYevwgNa3wTohTkqu1itvF0vAWEZvb5-juGKJzABaqeGU1"/>
+<div class="relative z-20 max-w-2xl">
+<span class="inline-block bg-tertiary-container text-on-tertiary-container px-4 py-1 rounded-full text-label-sm mb-unit-sm">L'Espace Raffiné</span>
+<h2 class="font-h1 text-h1 mb-unit-sm">Performance de Vendas</h2>
+<p class="text-body-lg opacity-90 mb-unit-lg">Acompanhamento estratégico em tempo real dos resultados Club Med Brasil.</p>
+<div class="w-full bg-white/20 rounded-full h-4 overflow-hidden">
+<div class="bg-tertiary-container h-full rounded-full w-[78%] transition-all duration-1000 shadow-[0_0_12px_rgba(209,216,113,0.5)]"></div>
+</div>
+<div class="flex justify-between mt-2 font-label-md">
+<span>Progresso Global</span>
+<span>78% da Meta Atingida</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Revenue Bento Grid -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-gutter mb-unit-xl">
+<div class="bg-white border border-slate-100 rounded-lg p-unit-lg flex flex-col justify-between h-full hover:shadow-sm transition-shadow">
+<div>
+<span class="material-symbols-outlined text-secondary text-3xl mb-4">account_balance_wallet</span>
+<p class="text-on-surface-variant font-label-md">Receita Anual Acumulada</p>
+</div>
+<h3 class="text-h1 font-h1 text-secondary mt-4">R$ 1.842.000</h3>
+<div class="flex items-center gap-2 text-tertiary mt-2">
+<span class="material-symbols-outlined text-sm">trending_up</span>
+<span class="text-label-sm">+12.4% vs. ano anterior</span>
+</div>
+</div>
+<div class="bg-secondary text-white rounded-lg p-unit-lg flex flex-col justify-between h-full shadow-lg">
+<div>
+<span class="material-symbols-outlined text-primary-container text-3xl mb-4">festival</span>
+<p class="opacity-80 font-label-md">Receita Fair (Destaque)</p>
+</div>
+<h3 class="text-h1 font-h1 text-tertiary-container mt-4">R$ 645.200</h3>
+<div class="bg-white/10 p-4 rounded-lg mt-4 flex items-center justify-between">
+<span class="text-label-md">Performance Fair</span>
+<span class="material-symbols-outlined text-tertiary-container" data-weight="fill">verified</span>
+</div>
+</div>
+<div class="bg-primary-container text-on-primary-container rounded-lg p-unit-lg flex flex-col justify-between h-full">
+<div>
+<span class="material-symbols-outlined text-secondary text-3xl mb-4">lightbulb</span>
+<p class="font-label-md">Insight Estratégico</p>
+</div>
+<p class="font-body-md mt-4 italic">"O aumento na procura por Trancoso sugere uma oportunidade de upselling em pacotes premium para o próximo trimestre."</p>
+<button class="bg-secondary text-white rounded-full py-3 px-6 mt-6 font-label-md hover:opacity-90 transition-opacity">Ver Detalhes</button>
+</div>
+</section>
+<!-- Main Metrics Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-gutter mb-unit-xl">
+<!-- Secondary Metrics -->
+<div class="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-gutter">
+<div class="bg-surface-container-low p-unit-lg rounded-lg border border-outline-variant/30 flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-tertiary-container/30 flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined">eco</span>
+</div>
+<div>
+<p class="text-on-surface-variant font-label-sm">Green Commission</p>
+<p class="text-h3 font-h3 text-secondary">R$ 92k</p>
+</div>
+</div>
+<div class="bg-surface-container-low p-unit-lg rounded-lg border border-outline-variant/30 flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-primary-container/30 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">swap_horiz</span>
+</div>
+<div>
+<p class="text-on-surface-variant font-label-sm">Total Transfer</p>
+<p class="text-h3 font-h3 text-secondary">R$ 48k</p>
+</div>
+</div>
+<div class="bg-surface-container-low p-unit-lg rounded-lg border border-outline-variant/30 flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-primary-container/30 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">fitness_center</span>
+</div>
+<div>
+<p class="text-on-surface-variant font-label-sm">Equipment</p>
+<p class="text-h3 font-h3 text-secondary">R$ 12k</p>
+</div>
+</div>
+<div class="bg-surface-container-low p-unit-lg rounded-lg border border-outline-variant/30 flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-primary-container/30 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">receipt_long</span>
+</div>
+<div>
+<p class="text-on-surface-variant font-label-sm">Taxes</p>
+<p class="text-h3 font-h3 text-secondary">R$ 24k</p>
+</div>
+</div>
+</div>
+<!-- Attention Cards -->
+<div class="flex flex-col gap-gutter">
+<div class="bg-white border-l-4 border-error p-unit-lg rounded-lg shadow-sm">
+<div class="flex justify-between items-start mb-2">
+<p class="text-error font-label-sm uppercase tracking-wider">Cancelamentos</p>
+<span class="material-symbols-outlined text-error">cancel</span>
+</div>
+<p class="text-h3 font-h3 text-on-surface">R$ 18.000</p>
+<p class="text-label-sm text-on-surface-variant mt-1">8 reservas canceladas este mês</p>
+</div>
+<div class="bg-white border-l-4 border-tertiary-container p-unit-lg rounded-lg shadow-sm">
+<div class="flex justify-between items-start mb-2">
+<p class="text-tertiary font-label-sm uppercase tracking-wider">Gap de Meta</p>
+<span class="material-symbols-outlined text-tertiary">flag</span>
+</div>
+<p class="text-h3 font-h3 text-on-surface">R$ 658.000</p>
+<p class="text-label-sm text-on-surface-variant mt-1">Restante para meta anual</p>
+</div>
+</div>
+</div>
+<!-- Geographical & Projections -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-gutter mb-unit-xl">
+<!-- Geographical Sales -->
+<div class="bg-white p-unit-lg rounded-lg border border-slate-100">
+<div class="flex justify-between items-center mb-unit-lg">
+<h3 class="text-h3 font-h3 text-secondary">Vendas Geográficas</h3>
+<span class="material-symbols-outlined text-slate-400">map</span>
+</div>
+<div class="space-y-unit-md">
+<div>
+<div class="flex justify-between mb-2">
+<span class="font-label-md">Trancoso</span>
+<span class="font-label-md text-secondary">42%</span>
+</div>
+<div class="h-3 w-full bg-surface-container rounded-full">
+<div class="h-full bg-secondary rounded-full" style="width: 42%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between mb-2">
+<span class="font-label-md">Rio das Pedras</span>
+<span class="font-label-md text-secondary">35%</span>
+</div>
+<div class="h-3 w-full bg-surface-container rounded-full">
+<div class="h-full bg-primary-container rounded-full" style="width: 35%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between mb-2">
+<span class="font-label-md">Lake Paradise</span>
+<span class="font-label-md text-secondary">23%</span>
+</div>
+<div class="h-3 w-full bg-surface-container rounded-full">
+<div class="h-full bg-tertiary-container rounded-full" style="width: 23%"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Distribution & Top Seller -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+<div class="bg-surface-container-high p-unit-lg rounded-lg flex flex-col items-center justify-center text-center">
+<div class="w-20 h-20 rounded-full border-8 border-secondary border-t-tertiary-container mb-4"></div>
+<p class="font-label-md text-secondary">Distribuição de Canais</p>
+<p class="text-label-sm text-on-surface-variant">Direto: 68% | OTA: 32%</p>
+</div>
+<div class="bg-white border border-slate-100 p-unit-lg rounded-lg">
+<h4 class="font-label-md text-on-surface-variant mb-4">Top Seller do Mês</h4>
+<div class="flex items-center gap-4">
+<img alt="Seller" class="w-12 h-12 rounded-full" data-alt="professional portrait of a confident sales executive smiling in a minimalist bright office background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAlCdUs9XGFyp4LrLUYvmBMbUn1clZveQX1fNhcUdD-8p0ogV8n7oIgoE3FH_Y_hlvCYvsEbGfer_ztKhIZPGXku-aMD6UPXPXeEToJbBN-S14naMFF64sKcXYU_NqEGdMeauN81rrOeqDxcGEKm04PuQ8DkoJBE--giQY_hzKDMsojrMnifqYyxSstPFBTGwi7iUPB0OXRJ4qdGEdVu8hxKPpEpjyKDJv2cEKucW2RSAlEKtf2bdltQXCt_hc9T2MTlj56a9oLyGSI"/>
+<div>
+<p class="font-semibold text-secondary">Ana Beatriz Silva</p>
+<p class="text-label-sm text-tertiary">R$ 214.500</p>
+</div>
+</div>
+<div class="mt-4 pt-4 border-t border-slate-50 flex items-center gap-2 text-label-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px]">stars</span>
+<span>Diamond Member Performance</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Travel Date Projection Chart Placeholder -->
+<section class="bg-white p-unit-lg rounded-lg border border-slate-100 mb-unit-xl">
+<div class="flex justify-between items-center mb-unit-lg">
+<h3 class="text-h3 font-h3 text-secondary">Projeção de Data de Viagem</h3>
+<div class="flex gap-2">
+<button class="bg-surface-container px-4 py-1 rounded-full text-label-sm">Mensal</button>
+<button class="bg-secondary text-white px-4 py-1 rounded-full text-label-sm">Trimestral</button>
+</div>
+</div>
+<div class="h-64 flex items-end justify-between px-unit-lg gap-4">
+<div class="flex-1 bg-primary-container/20 rounded-t-lg relative group h-[40%]">
+<div class="absolute inset-x-0 bottom-0 bg-primary-container rounded-t-lg transition-all h-[60%] group-hover:h-[80%]"></div>
+<span class="absolute -bottom-8 left-1/2 -translate-x-1/2 text-label-sm opacity-60">Jan</span>
+</div>
+<div class="flex-1 bg-primary-container/20 rounded-t-lg relative group h-[55%]">
+<div class="absolute inset-x-0 bottom-0 bg-primary-container rounded-t-lg transition-all h-[70%] group-hover:h-[90%]"></div>
+<span class="absolute -bottom-8 left-1/2 -translate-x-1/2 text-label-sm opacity-60">Fev</span>
+</div>
+<div class="flex-1 bg-primary-container/20 rounded-t-lg relative group h-[70%]">
+<div class="absolute inset-x-0 bottom-0 bg-primary-container rounded-t-lg transition-all h-[80%] group-hover:h-[100%]"></div>
+<span class="absolute -bottom-8 left-1/2 -translate-x-1/2 text-label-sm opacity-60">Mar</span>
+</div>
+<div class="flex-1 bg-primary-container/20 rounded-t-lg relative group h-[90%]">
+<div class="absolute inset-x-0 bottom-0 bg-tertiary-container rounded-t-lg transition-all h-[95%] group-hover:h-[100%]"></div>
+<span class="absolute -bottom-8 left-1/2 -translate-x-1/2 text-label-sm font-bold">Abr</span>
+</div>
+<div class="flex-1 bg-primary-container/20 rounded-t-lg relative group h-[60%]">
+<div class="absolute inset-x-0 bottom-0 bg-primary-container rounded-t-lg transition-all h-[50%] group-hover:h-[70%]"></div>
+<span class="absolute -bottom-8 left-1/2 -translate-x-1/2 text-label-sm opacity-60">Mai</span>
+</div>
+<div class="flex-1 bg-primary-container/20 rounded-t-lg relative group h-[45%]">
+<div class="absolute inset-x-0 bottom-0 bg-primary-container rounded-t-lg transition-all h-[40%] group-hover:h-[60%]"></div>
+<span class="absolute -bottom-8 left-1/2 -translate-x-1/2 text-label-sm opacity-60">Jun</span>
+</div>
+</div>
+<div class="mt-12 text-center text-label-sm text-on-surface-variant">
+                * Projeções baseadas em volume histórico de reservas confirmadas.
+            </div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full z-50 bg-white/90 dark:bg-slate-950/90 backdrop-blur-lg border-t border-slate-100 dark:border-slate-800 shadow-[0_-4px_12px_rgba(19,51,61,0.05)] md:hidden">
+<div class="flex justify-around items-center px-4 pb-6 pt-3">
+<a class="flex flex-col items-center justify-center bg-slate-900 text-white rounded-full px-6 py-2 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-['Inter'] text-[11px] font-medium">Dashboard</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-500 px-4 py-2 hover:text-slate-900 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span class="font-['Inter'] text-[11px] font-medium">Sales</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-500 px-4 py-2 hover:text-slate-900 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-['Inter'] text-[11px] font-medium">Reports</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-500 px-4 py-2 hover:text-slate-900 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-['Inter'] text-[11px] font-medium">Profile</span>
+</a>
+</div>
+</nav>
+<!-- Contextual FAB -->
+<button class="fixed right-6 bottom-24 md:bottom-10 bg-secondary text-white w-14 h-14 rounded-full flex items-center justify-center shadow-xl hover:scale-105 active:scale-95 transition-transform z-40">
+<span class="material-symbols-outlined text-3xl">add</span>
+</button>
+</body></html>
