@@ -87,6 +87,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         drawFixedKPIs();
         renderTopSellers(state.filtrados);
         await applyFilters();
+        initUltimaVenda();
 
     } catch (error) {
         console.error("Erro crítico:", error);
@@ -181,8 +182,22 @@ function updateGamification() {
                 <div class="milestone-label-title">${m.label}</div>
                 <div class="milestone-label-value">${fmtCompact(m.value)}</div>
             </div>`;
+        mk.setAttribute('tabindex', '0');
+        mk.addEventListener('click', (e) => {
+            container.querySelectorAll('.milestone-marker.active-touch').forEach(el => {
+                if (el !== mk) el.classList.remove('active-touch');
+            });
+            mk.classList.toggle('active-touch');
+            e.stopPropagation();
+        });
         container.appendChild(mk);
     });
+    if (!window._milestoneOutsideListener) {
+        document.addEventListener('click', () => {
+            document.querySelectorAll('.milestone-marker.active-touch').forEach(el => el.classList.remove('active-touch'));
+        });
+        window._milestoneOutsideListener = true;
+    }
 }
 
 // ============================================================
@@ -501,13 +516,14 @@ function renderTopSellers(_unused) {
     container.innerHTML = top.map(([name, value], i) => {
         const initials = String(name).split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase();
         const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '';
+        const safeName = String(name).replace(/'/g, "&#39;").replace(/"/g, '&quot;');
         return `
-          <div class="seller-row">
+          <div class="seller-row" role="button" tabindex="0" onclick="openSellerModal('${safeName}')">
             <div class="seller-rank">${i + 1}</div>
             <div class="seller-avatar">${initials}</div>
             <div class="seller-info">
                 <div class="seller-name">${name} ${medal}</div>
-                <div class="seller-meta">${cnt[name]} venda${cnt[name] > 1 ? 's' : ''}</div>
+                <div class="seller-meta">${cnt[name]} venda${cnt[name] > 1 ? 's' : ''} · clique para detalhes</div>
             </div>
             <div class="seller-value">${fmtBRL(value)}</div>
           </div>`;
@@ -899,6 +915,353 @@ function stopSlideshow() {
     if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
     document.getElementById('tablet-slideshow').classList.remove('ts-visible');
     document.body.style.overflow = '';
+}
+
+// ============================================================
+// SELLER MODAL — Detalhes do Vendedor (com filtros)
+// ============================================================
+state.sellerCache = {};
+state.smCharts = {};
+
+function getInitials(n) {
+    return String(n).split(/\s+/).filter(Boolean).map(w => w[0]).slice(0, 2).join('').toUpperCase();
+}
+
+async function openSellerModal(nome) {
+    state.currentSeller = nome;
+
+    document.getElementById('smName').textContent = nome;
+    document.getElementById('smAvatar').textContent = getInitials(nome);
+    document.getElementById('smMeta').textContent = 'Carregando…';
+    document.getElementById('sellerModal').classList.add('open');
+
+    let sales = state.sellerCache[nome];
+    if (!sales) {
+        const { data, error } = await sb
+            .from('vendas_reservas')
+            .select('*')
+            .eq('vendedora', nome);
+        if (error) { console.warn('Seller query:', error); sales = []; }
+        else { sales = data || []; }
+        state.sellerCache[nome] = sales;
+    }
+
+    document.getElementById('smMeta').textContent = `${sales.length} venda${sales.length !== 1 ? 's' : ''}`;
+    renderSellerKPIs(sales);
+    renderSellerCharts(sales);
+    renderSellerTimeline(sales);
+}
+
+function renderSellerKPIs(sales) {
+    const total  = sales.reduce((a, s) => a + (parseFloat(s.valor_total) || 0), 0);
+    const qtd    = sales.length;
+    const ticket = qtd ? total / qtd : 0;
+    const best   = sales.reduce((m, s) => {
+        const v = parseFloat(s.valor_total) || 0;
+        return v > m ? v : m;
+    }, 0);
+
+    document.getElementById('smKpis').innerHTML = `
+        <div class="sm-kpi-tile">
+            <div class="sm-kpi-icon a"><span class="material-symbols-outlined">payments</span></div>
+            <div class="sm-kpi-info"><span class="sm-kpi-label">Faturamento</span><span class="sm-kpi-value">${fmtBRL(total)}</span></div>
+        </div>
+        <div class="sm-kpi-tile">
+            <div class="sm-kpi-icon b"><span class="material-symbols-outlined">receipt_long</span></div>
+            <div class="sm-kpi-info"><span class="sm-kpi-label">Qtd. Vendas</span><span class="sm-kpi-value">${qtd}</span></div>
+        </div>
+        <div class="sm-kpi-tile">
+            <div class="sm-kpi-icon c"><span class="material-symbols-outlined">confirmation_number</span></div>
+            <div class="sm-kpi-info"><span class="sm-kpi-label">Ticket Médio</span><span class="sm-kpi-value">${fmtBRL(ticket)}</span></div>
+        </div>
+        <div class="sm-kpi-tile">
+            <div class="sm-kpi-icon d"><span class="material-symbols-outlined">emoji_events</span></div>
+            <div class="sm-kpi-info"><span class="sm-kpi-label">Maior Venda</span><span class="sm-kpi-value">${fmtBRL(best)}</span></div>
+        </div>
+    `;
+}
+
+function renderSellerCharts(sales) {
+    const byTipo = {}, byCamp = {};
+    sales.forEach(s => {
+        const tKey = (s.categoria && String(s.categoria).trim()) || 'Outros';
+        const cKey = (s.campanha  && String(s.campanha).trim())  || 'Sem campanha';
+        const v = parseFloat(s.valor_total) || 0;
+        byTipo[tKey] = (byTipo[tKey] || 0) + v;
+        byCamp[cKey] = (byCamp[cKey] || 0) + v;
+    });
+
+    // Chart Tipo (donut)
+    if (state.smCharts.tipo) state.smCharts.tipo.destroy();
+    const tipoEntries = Object.entries(byTipo).sort((a, b) => b[1] - a[1]);
+    state.smCharts.tipo = new Chart(document.getElementById('smChartTipo').getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: tipoEntries.map(e => e[0]),
+            datasets: [{
+                data: tipoEntries.map(e => e[1]),
+                backgroundColor: categoricalColors,
+                borderWidth: 2,
+                borderColor: '#ffffff'
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            cutout: '62%',
+            plugins: {
+                legend: { position: 'bottom', labels: { boxWidth: 10, padding: 10, font: { size: 11 } } },
+                tooltip: { callbacks: { label: ctx => `${ctx.label}: ${fmtBRL(ctx.parsed)}` } }
+            }
+        }
+    });
+
+    // Chart Campanha (bar horizontal)
+    if (state.smCharts.camp) state.smCharts.camp.destroy();
+    const campEntries = Object.entries(byCamp).sort((a, b) => b[1] - a[1]);
+    state.smCharts.camp = new Chart(document.getElementById('smChartCampanha').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: campEntries.map(e => e[0]),
+            datasets: [{
+                data: campEntries.map(e => e[1]),
+                backgroundColor: palette.primary,
+                borderRadius: 6,
+                maxBarThickness: 26
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            indexAxis: 'y',
+            plugins: {
+                legend: { display: false },
+                tooltip: { callbacks: { label: ctx => fmtBRL(ctx.parsed.x) } }
+            },
+            scales: {
+                x: { grid: { color: palette.grid }, ticks: { callback: v => 'R$ ' + (v/1000).toFixed(0) + 'k' } },
+                y: { grid: { display: false } }
+            }
+        }
+    });
+}
+
+function renderSellerTimeline(sales) {
+    const keys = sales[0] ? Object.keys(sales[0]) : [];
+    const kDate = keys.find(k => ['data_venda','created_at','data','dt_'].some(p => k.toLowerCase().includes(p)));
+
+    const sorted = [...sales].sort((a, b) => {
+        const da = kDate ? new Date(a[kDate] || 0) : 0;
+        const db = kDate ? new Date(b[kDate] || 0) : 0;
+        return db - da;
+    }).slice(0, 15);
+
+    const tbody = document.querySelector('#smTimeline tbody');
+    if (sorted.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--on-surface-variant);padding:1rem;">Nenhuma venda com os filtros atuais</td></tr>`;
+        return;
+    }
+    tbody.innerHTML = sorted.map(s => {
+        let dStr = '—';
+        if (kDate && s[kDate]) {
+            const d = new Date(s[kDate]);
+            dStr = isNaN(d) ? String(s[kDate]) : d.toLocaleDateString('pt-BR');
+        }
+        return `<tr>
+            <td>${dStr}</td>
+            <td>${s.categoria || '—'}</td>
+            <td>${s.village || '—'}</td>
+            <td>${s.campanha || '—'}</td>
+            <td style="text-align:right;font-weight:600;color:var(--tertiary);">${fmtBRL(s.valor_total)}</td>
+        </tr>`;
+    }).join('');
+}
+
+// ============================================================
+// POPUP ÚLTIMA VENDA
+// ============================================================
+async function initUltimaVenda() {
+    let sale = null;
+
+    // Tenta buscar a venda mais recente da tabela vendas_reservas
+    const dateColumns = ['created_at', 'data_venda', 'data', 'dt_venda'];
+    for (const col of dateColumns) {
+        const { data, error } = await sb
+            .from('vendas_reservas')
+            .select('*')
+            .order(col, { ascending: false })
+            .limit(1);
+        if (!error && data && data.length > 0) { sale = data[0]; break; }
+    }
+
+    // Fallback: usa última entrada de state.vendas
+    if (!sale && state.vendas.length > 0) {
+        const kDate = Object.keys(state.vendas[0]).find(k =>
+            ['data_venda','data','mes_ano','created_at','dt_'].some(p => k.toLowerCase().includes(p))
+        );
+        const sorted = kDate
+            ? [...state.vendas].sort((a, b) => new Date(b[kDate]) - new Date(a[kDate]))
+            : state.vendas;
+        sale = sorted[0];
+    }
+
+    if (!sale) return;
+    renderUltimaVenda(sale);
+    initUvpDrag();
+}
+
+function renderUltimaVenda(sale) {
+    const keys = Object.keys(sale);
+    const find = (...terms) => keys.find(k => terms.some(t => k.toLowerCase().includes(t)));
+
+    const kDate    = find('data_venda', 'data', 'created_at', 'mes_ano', 'dt_');
+    const kVal     = find('valor_total', 'faturamento', 'valor', 'total');
+    const kCat     = find('campanha', 'category');
+    const kTipo    = find('categoria', 'tipo_venda', 'tipo', 'produto');
+    const kVillage = find('village', 'destino', 'resort');
+    const kSell    = find('vendedora', 'vendedor', 'consultor', 'seller', 'nome_vend');
+
+    let dataStr = '—';
+    if (kDate && sale[kDate]) {
+        const d = new Date(sale[kDate]);
+        dataStr = isNaN(d) ? String(sale[kDate]) : d.toLocaleDateString('pt-BR');
+    }
+    const valorStr = kVal  && sale[kVal]  != null ? fmtBRL(sale[kVal])  : '—';
+    const catStr   = kCat  && sale[kCat]  != null ? String(sale[kCat])  : '—';
+    const sellStr  = kSell && sale[kSell] != null ? String(sale[kSell]) : '—';
+
+    // Identifica tipo da venda (Village / Equipamento / Transfer / Taxa / Outros)
+    const tipoRaw = kTipo && sale[kTipo] != null ? String(sale[kTipo]).trim() : '';
+    const villageName = kVillage && sale[kVillage] != null ? String(sale[kVillage]).trim() : '';
+    const tipoLow = tipoRaw.toLowerCase();
+
+    let tipoIcon = 'sell';
+    let tipoLabel = 'Tipo da Venda';
+    let tipoValue = tipoRaw || '—';
+
+    if (tipoLow.includes('village') || (villageName && villageName !== 'N/I' && villageName !== '')) {
+        tipoIcon  = 'apartment';
+        tipoLabel = 'Village';
+        tipoValue = villageName && villageName !== 'N/I' ? villageName : (tipoRaw || 'Village');
+    } else if (tipoLow.includes('equip')) {
+        tipoIcon  = 'snowboarding';
+        tipoLabel = 'Equipamento';
+        tipoValue = tipoRaw;
+    } else if (tipoLow.includes('transfer')) {
+        tipoIcon  = 'airport_shuttle';
+        tipoLabel = 'Transfer';
+        tipoValue = tipoRaw;
+    } else if (tipoLow.includes('taxa')) {
+        tipoIcon  = 'receipt_long';
+        tipoLabel = 'Taxa';
+        tipoValue = tipoRaw;
+    }
+
+    document.getElementById('uvpBody').innerHTML = `
+        <div class="uvp-pill">
+            <div class="uvp-pill-icon date">
+                <span class="material-symbols-outlined">calendar_month</span>
+            </div>
+            <div class="uvp-pill-info">
+                <span class="uvp-pill-label">Data</span>
+                <span class="uvp-pill-value">${dataStr}</span>
+            </div>
+        </div>
+        <div class="uvp-pill">
+            <div class="uvp-pill-icon value">
+                <span class="material-symbols-outlined">payments</span>
+            </div>
+            <div class="uvp-pill-info">
+                <span class="uvp-pill-label">Valor</span>
+                <span class="uvp-pill-value destaque">${valorStr}</span>
+            </div>
+        </div>
+        <div class="uvp-pill">
+            <div class="uvp-pill-icon tipo">
+                <span class="material-symbols-outlined">${tipoIcon}</span>
+            </div>
+            <div class="uvp-pill-info">
+                <span class="uvp-pill-label">${tipoLabel}</span>
+                <span class="uvp-pill-value">${tipoValue}</span>
+            </div>
+        </div>
+        <div class="uvp-pill">
+            <div class="uvp-pill-icon cat">
+                <span class="material-symbols-outlined">campaign</span>
+            </div>
+            <div class="uvp-pill-info">
+                <span class="uvp-pill-label">Campanha</span>
+                <span class="uvp-pill-value">${catStr}</span>
+            </div>
+        </div>
+        <div class="uvp-pill">
+            <div class="uvp-pill-icon seller">
+                <span class="material-symbols-outlined">person</span>
+            </div>
+            <div class="uvp-pill-info">
+                <span class="uvp-pill-label">Vendedora</span>
+                <span class="uvp-pill-value">${sellStr}</span>
+            </div>
+        </div>
+    `;
+
+    const popup = document.getElementById('ultimaVendaPopup');
+    popup.style.animation = '';
+    popup.style.display = 'block';
+    void popup.offsetWidth; // força reflow para reiniciar animação
+    popup.style.animation = 'uvpEntrar .45s cubic-bezier(.34,1.56,.64,1) both';
+}
+
+function toggleUvpMinimize() {
+    const popup = document.getElementById('ultimaVendaPopup');
+    const icon  = document.getElementById('uvpMinimizeIcon');
+    const minimized = popup.classList.toggle('uvp-minimized');
+    icon.textContent = minimized ? 'expand_more' : 'expand_less';
+}
+
+function fecharUltimaVenda() {
+    const popup = document.getElementById('ultimaVendaPopup');
+    popup.style.animation = 'uvpSair .25s ease forwards';
+    setTimeout(() => { popup.style.display = 'none'; }, 270);
+}
+
+function initUvpDrag() {
+    const popup  = document.getElementById('ultimaVendaPopup');
+    const handle = document.getElementById('uvpHandle');
+    let dragging = false, ox = 0, oy = 0;
+
+    const startDrag = (cx, cy) => {
+        const r = popup.getBoundingClientRect();
+        ox = cx - r.left;
+        oy = cy - r.top;
+        dragging = true;
+        popup.style.right  = 'auto';
+        popup.style.bottom = 'auto';
+        popup.style.left   = r.left + 'px';
+        popup.style.top    = r.top  + 'px';
+        popup.style.animation = 'none';
+    };
+    const moveDrag = (cx, cy) => {
+        if (!dragging) return;
+        popup.style.left = (cx - ox) + 'px';
+        popup.style.top  = (cy - oy) + 'px';
+    };
+    const endDrag = () => { dragging = false; };
+
+    handle.addEventListener('mousedown', e => {
+        if (e.target.closest('.uvp-close')) return;
+        startDrag(e.clientX, e.clientY);
+        e.preventDefault();
+    });
+    document.addEventListener('mousemove', e => moveDrag(e.clientX, e.clientY));
+    document.addEventListener('mouseup', endDrag);
+
+    handle.addEventListener('touchstart', e => {
+        if (e.target.closest('.uvp-close')) return;
+        startDrag(e.touches[0].clientX, e.touches[0].clientY);
+    }, { passive: true });
+    document.addEventListener('touchmove', e => {
+        moveDrag(e.touches[0].clientX, e.touches[0].clientY);
+    }, { passive: true });
+    document.addEventListener('touchend', endDrag);
 }
 
 function togglePause() {

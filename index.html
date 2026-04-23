@@ -118,8 +118,8 @@
                             <div class="milestone-points" id="milestonesContainer"></div>
                         </div>
                         <div class="flex justify-between items-baseline mt-3 text-sm flex-wrap gap-2">
-                            <span class="opacity-85 font-medium">Progresso Global · Metas 2026</span>
-                            <span id="gamiRemaining" class="font-semibold text-tertiary-container">Calculando…</span>
+                            <span class="text-on-surface-variant font-medium">Progresso Global · Metas 2026</span>
+                            <span id="gamiRemaining" class="font-semibold text-tertiary">Calculando…</span>
                         </div>
                     </div>
                 </div>
@@ -299,7 +299,7 @@
 
     <!-- Footer -->
     <footer class="border-t border-outline-variant/40 bg-white/60 backdrop-blur-sm py-6 px-margin-page">
-        <div class="max-w-container-max mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-on-surface-variant">
+        <div class="footer-inner max-w-container-max mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-on-surface-variant">
             <span>© 2026 Espaço Club Med · Greentours LTDA. Todos os direitos reservados.</span>
             <a href="https://greentours.com.br" target="_blank" rel="noopener"
                class="font-semibold text-secondary hover:text-primary transition-colors underline underline-offset-2">
@@ -349,6 +349,71 @@
     <script>
         function closeModal(id) { document.getElementById(id).classList.remove('open'); }
     </script>
+    <!-- Modal: Detalhes do Vendedor -->
+    <div class="modal-overlay" id="sellerModal" onclick="closeModal('sellerModal')">
+        <div class="modal-panel seller-panel" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <div class="sm-head">
+                    <div class="sm-head-avatar" id="smAvatar">—</div>
+                    <div>
+                        <h3 class="text-xl font-semibold text-secondary" id="smName">Vendedora</h3>
+                        <p class="text-xs text-on-surface-variant" id="smMeta">Carregando…</p>
+                    </div>
+                </div>
+                <button class="modal-close" onclick="closeModal('sellerModal')" title="Fechar">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+
+            <div class="modal-body sm-body">
+                <div class="sm-kpi-grid" id="smKpis">
+                    <div class="sm-kpi-skeleton">Carregando métricas…</div>
+                </div>
+
+                <div class="sm-charts-grid">
+                    <div class="sm-chart-card">
+                        <h4 class="sm-chart-title">Distribuição por Tipo</h4>
+                        <div class="sm-chart-wrap"><canvas id="smChartTipo"></canvas></div>
+                    </div>
+                    <div class="sm-chart-card">
+                        <h4 class="sm-chart-title">Por Campanha</h4>
+                        <div class="sm-chart-wrap"><canvas id="smChartCampanha"></canvas></div>
+                    </div>
+                </div>
+
+                <div class="sm-timeline-card">
+                    <h4 class="sm-chart-title">Últimas vendas</h4>
+                    <div class="sm-timeline-scroll">
+                        <table class="detail-table" id="smTimeline">
+                            <thead><tr><th>Data</th><th>Tipo</th><th>Village</th><th>Campanha</th><th style="text-align:right;">Valor</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Popup Última Venda — Flutuante e Arrastável -->
+    <div class="ultima-venda-popup" id="ultimaVendaPopup" style="display:none;" role="dialog" aria-label="Última Venda">
+        <div class="uvp-handle" id="uvpHandle">
+            <div class="uvp-title-row">
+                <span class="uvp-title">Última Venda</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;">
+                <button class="uvp-minimize" id="uvpMinimizeBtn" onclick="toggleUvpMinimize()" aria-label="Minimizar">
+                    <span class="material-symbols-outlined" id="uvpMinimizeIcon">expand_less</span>
+                </button>
+                <button class="uvp-close" onclick="fecharUltimaVenda()" aria-label="Fechar">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+        </div>
+        <div class="uvp-body" id="uvpBody">
+            <div class="uvp-loading">Carregando…</div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>
